@@ -1,38 +1,33 @@
 import "reflect-metadata";
 import { ApolloServer } from "apollo-server-express";
 import * as Express from "express";
-import {buildSchema, Query, Resolver} from 'type-graphql';
+import { buildSchema } from 'type-graphql';
+import { createConnection } from "typeorm";
+import { RegisterResolver } from "./modules/user/Register";
 
 
-@Resolver()
-class HelloResolver {
-    @Query(() => String, {name: 'helloWorld', nullable: true /*---- может ли он вернуть нулевое значение */})
-    async hello(){
-        return "Hello world";
-    }
-}
-
-@Resolver()
-class patt {
-    @Query(() => String, {name: 'pizda'})
-    async hell(){
-        return "Ulan";
-    }
-}
 
 const main = async () => {
+    await createConnection();
+    console.log(" \x1b[1m CONNECTION CREATED \x1b[0m")
+
     const schema = await buildSchema({
-        resolvers: [HelloResolver, patt]//схема это код, который опрокидывает все на сервер.
+
+        resolvers: [RegisterResolver]//схема это код, который опрокидывает все на сервер.
     });
 
 
 
-    const apolloServer = new ApolloServer({schema});
+    const apolloServer = new ApolloServer({ schema, playground: true },);
 
     const app = Express()
+    console.log('ADDING MIDDLEWARE');
     apolloServer.applyMiddleware({ app });
 
-    app.listen(4000) 
+    app.listen(4000, ()=>{
+        console.log("SERVER Started at 4000")
+    })
+
 };
 
 main();
